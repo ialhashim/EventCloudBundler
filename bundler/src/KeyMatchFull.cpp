@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <time.h>
 #include <string.h>
+#include <omp.h>
 
 #include "keys2a.h"
 
@@ -27,6 +28,11 @@ int main(int argc, char **argv) {
     char *list_in;
     char *file_out;
     double ratio;
+	
+	#pragma omp parallel for
+	int N = 5;
+    for (i = 0; i < N; i++)
+        printf("Testing OpenMP [%d]", i);
     
     if (argc != 3) {
 	printf("Usage: %s <list.txt> <outfile>\n", argv[0]);
