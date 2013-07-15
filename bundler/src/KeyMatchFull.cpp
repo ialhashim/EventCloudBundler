@@ -29,8 +29,10 @@ int main(int argc, char **argv) {
     char *file_out;
     double ratio;
 	
-	#pragma omp parallel for
-	int N = 5;
+    int N = 5;
+    int i = 0;
+
+    #pragma omp parallel for
     for (i = 0; i < N; i++)
         printf("Testing OpenMP [%d]", i);
     
