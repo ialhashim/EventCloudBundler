@@ -1,4 +1,4 @@
-mkdir output/$1
+mkdir -p output/$1
 cd output/$1
-../../bundler/RunBundler.sh ../../data/$1
+../../bundler/RunBundler.sh ready
 
