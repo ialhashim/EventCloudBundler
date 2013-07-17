@@ -1,4 +1,4 @@
 EventCloudBundler
 =================
 
-Special bunder_sfm that supports parallel execution.
+Special bunder_sfm that supports parallel execution with preprocessing.
