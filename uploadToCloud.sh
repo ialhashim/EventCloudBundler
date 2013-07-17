@@ -8,4 +8,4 @@ if [ "$#" == "0" ]; then
 fi
 
 
-boto-rsync output/$1/bundle s3://eventfulcloud-uploads/$1/bundle
+boto-rsync output/$1/bundle s3://eventfulcloud-3d/$1/bundle
