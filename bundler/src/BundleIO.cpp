@@ -1157,6 +1157,10 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
 
     FILE *f = fopen(ply_out, "w");
 
+    char xml_out[256];
+    sprintf(xml_out, "%s/output.xml", output_directory, filename);
+    FILE *fxml = fopen(xml_out, "w");
+
     if (f == NULL) {
 	printf("Error opening file %s for writing\n", ply_out);
 	return;
@@ -1165,53 +1169,80 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
     /* Print the ply header */
     fprintf(f, ply_header, num_good_pts + 2 * num_cameras);
 
+    fprintf(fxml, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+    fprintf(fxml, "<bundle>\n");
+    fprintf(fxml, "<points>\n");
+
+
     /* Now triangulate all the correspondences */
     for (int i = 0; i < num_points; i++) {
-	if (Vx(colors[i]) == 0x0 && 
-	    Vy(colors[i]) == 0x0 && 
-	    Vz(colors[i]) == 0xff) 
-	    continue;
+        if (Vx(colors[i]) == 0x0 &&
+            Vy(colors[i]) == 0x0 &&
+            Vz(colors[i]) == 0xff)
+            continue;
 
-	/* Output the vertex */
-	fprintf(f, "%0.6e %0.6e %0.6e %d %d %d\n", 
-		Vx(points[i]), Vy(points[i]), Vz(points[i]),
-		// Vx(points[idx]), Vy(points[idx]), Vz(points[idx]),
-                // (reflect ? -1 : 1) * Vz(points[i]),
-		iround(Vx(colors[i])), 
-		iround(Vy(colors[i])), 
-		iround(Vz(colors[i])));
+        /* Output the vertex */
+        fprintf(f, "%0.6e %0.6e %0.6e %d %d %d\n",
+            Vx(points[i]), Vy(points[i]), Vz(points[i]),
+            // Vx(points[idx]), Vy(points[idx]), Vz(points[idx]),
+                    // (reflect ? -1 : 1) * Vz(points[i]),
+            iround(Vx(colors[i])),
+            iround(Vy(colors[i])),
+            iround(Vz(colors[i])));
+
+        fprintf(fxml, "<point>\n\t<position> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </position>\n\t<color> <r>%d</r> <g>%d</g> <b>%d</b> </color>\n</point>\n",
+            Vx(points[i]), Vy(points[i]), Vz(points[i]),
+            iround(Vx(colors[i])), iround(Vy(colors[i])), iround(Vz(colors[i])));
     }
+
+    fprintf(fxml, "</points>\n");
+
+    fprintf(fxml, "<cameras>\n");
 
     for (int i = 0; i < num_cameras; i++) {
-	double c[3];
+        double c[3];
 
-	double Rinv[9];
-	matrix_invert(3, cameras[i].R, Rinv);
+        double Rinv[9];
+        matrix_invert(3, cameras[i].R, Rinv);
 
-        memcpy(c, cameras[i].t, 3 * sizeof(double));
-	
-	if ((i % 2) == 0)
-	    fprintf(f, "%0.6e %0.6e %0.6e 0 255 0\n", c[0], c[1], c[2]);
-                    // (reflect ? -1 : 1) * c[2]);
-	else
-	    fprintf(f, "%0.6e %0.6e %0.6e 255 0 0\n", c[0], c[1], c[2]);
-                    // (reflect ? -1 : 1) * c[2]);
+            memcpy(c, cameras[i].t, 3 * sizeof(double));
 
-	double p_cam[3] = { 0.0, 0.0, -0.05 };
-	double p[3];
+            fprintf(fxml, "<camera>\n\t<p1> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </p1>\n\t", c[0], c[1], c[2]);
 
-        // if (!reflect)
-        //    p_cam[2] *= -1.0;
+        if ((i % 2) == 0)
+            fprintf(f, "%0.6e %0.6e %0.6e 0 255 0\n", c[0], c[1], c[2]);
+                        // (reflect ? -1 : 1) * c[2]);
+        else
+            fprintf(f, "%0.6e %0.6e %0.6e 255 0 0\n", c[0], c[1], c[2]);
+                        // (reflect ? -1 : 1) * c[2]);
 
-	matrix_product(3, 3, 3, 1, Rinv, p_cam, p);
+        double p_cam[3] = { 0.0, 0.0, -0.05 };
+        double p[3];
 
-	p[0] += c[0];
-	p[1] += c[1];
-	p[2] += c[2];
+            // if (!reflect)
+            //    p_cam[2] *= -1.0;
 
-	fprintf(f, "%0.6e %0.6e %0.6e 255 255 0\n",
-		p[0], p[1], p[2]); // (reflect ? -1 : 1) * p[2]);
+        matrix_product(3, 3, 3, 1, Rinv, p_cam, p);
+
+        p[0] += c[0];
+        p[1] += c[1];
+        p[2] += c[2];
+
+        fprintf(f, "%0.6e %0.6e %0.6e 255 255 0\n", p[0], p[1], p[2]); // (reflect ? -1 : 1) * p[2]);
+
+        fprintf(fxml, "<p2> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </p2>\n", p[0], p[1], p[2]);
+
+        fprintf(fxml, "\t<img>%s</img>\n", m_image_data[i].m_name);
+        fprintf(fxml, "</camera>\n");
+
     }
+
+    fprintf(fxml, "</cameras>\n");
+
+
+
+    fprintf(fxml, "</bundle>\n");
+    fclose(fxml);
 
     fclose(f);
 }
