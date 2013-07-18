@@ -2,7 +2,7 @@
 
 CC=gcc
 CXX=g++
-OPTFLAGS=-O3 -Wall -fopenmp
+OPTFLAGS=-O3 -w -fopenmp -std=c++0x
 
 OS=$(shell uname -o)
 

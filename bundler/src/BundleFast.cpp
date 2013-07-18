@@ -213,7 +213,7 @@ void BundlerApp::BundleAdjustFast()
 	}
 
 	DumpPointsToPly(m_output_directory, "points001.ply", 
-                        curr_num_pts, 2, points, colors, cameras);
+                        curr_num_pts, 2, points, colors, cameras, added_order, pt_views);
 
 	if (m_bundle_output_base != NULL) {
 	    char buf[256];
@@ -415,7 +415,7 @@ void BundlerApp::BundleAdjustFast()
 
 	DumpPointsToPly(m_output_directory, buf, 
                         curr_num_pts, curr_num_cameras, 
-                        points, colors, cameras);
+                        points, colors, cameras, added_order, pt_views);
 
 	if (m_bundle_output_base != NULL) {
 	    sprintf(buf, "%s%03d.out", m_bundle_output_base, 

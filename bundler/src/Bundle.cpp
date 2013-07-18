@@ -503,8 +503,8 @@ void BundlerApp::ReRunSFM(double *S, double *U, double *V, double *W)
     }
 
     /* Save the output file */
-    DumpPointsToPly(m_output_directory, "points_readjusted.ply", 
-        num_pts, num_init_cams, init_pts, colors, cameras);
+    //DumpPointsToPly(m_output_directory, "points_readjusted.ply",
+    //    num_pts, num_init_cams, init_pts, colors, cameras);
 
     /* Dump output */
     if (m_bundle_output_file != NULL) {
@@ -2015,7 +2015,7 @@ void BundlerApp::EstimateIgnoredCameras(int &curr_num_cameras,
     }
 
     DumpPointsToPly(m_output_directory, "final.ply", 
-        curr_num_pts, curr_num_cameras, points, colors, cameras);
+        curr_num_pts, curr_num_cameras, points, colors, cameras, added_order, pt_views);
 }
 
 /* Compute pose of all cameras */
@@ -2215,8 +2215,8 @@ void BundlerApp::BundleAdjust()
 #endif
         }
 
-        DumpPointsToPly(m_output_directory, "points001.ply", 
-            curr_num_pts, 2, points, colors, cameras);
+        //DumpPointsToPly(m_output_directory, "points001.ply",
+        //    curr_num_pts, 2, points, colors, cameras);
 
         if (m_bundle_output_base != NULL) {
             char buf[256];
@@ -2360,7 +2360,7 @@ void BundlerApp::BundleAdjust()
             sprintf(buf, "points%03d.ply", round);
 
             DumpPointsToPly(m_output_directory, buf, 
-                curr_num_pts, round+1, points, colors, cameras);
+                curr_num_pts, round+1, points, colors, cameras, added_order,pt_views);
 
             if (m_bundle_output_base != NULL) {
                 sprintf(buf, "%s%03d.out", m_bundle_output_base, round);

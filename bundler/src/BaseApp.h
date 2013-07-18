@@ -452,7 +452,7 @@ public:
     /* Write point files to a ply file */
     void DumpPointsToPly(char *output_directory, char *filename, 
                          int num_points, int num_cameras, 
-			 v3_t *points, v3_t *colors, camera_params_t *cameras
+             v3_t *points, v3_t *colors, camera_params_t *cameras,int *added_order, std::vector<ImageKeyVector> &pt_views
                          /*bool reflect = true*/);
 
     /* Dump an output file containing information about the current

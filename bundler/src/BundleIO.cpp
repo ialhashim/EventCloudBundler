@@ -34,6 +34,9 @@
 #include "qsort.h"
 #include "util.h"
 
+#include <memory>
+#include "jsontool.h"
+
 
 
 #define MIN_MATCHES 10
@@ -1140,7 +1143,8 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
                               int num_points, int num_cameras, 
                               v3_t *points, v3_t *colors,
                               camera_params_t *cameras 
-                              /*bool reflect*/) 
+                              /*bool reflect*/,
+                              int *added_order, std::vector<ImageKeyVector> &pt_views)
 {
     int num_good_pts = 0;
 
@@ -1166,13 +1170,22 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
 	return;
     }
 
+    // JSON
+    char json_out[256];
+    sprintf(json_out, "%s/output.json", output_directory, filename);
+    FILE *fjson = fopen(json_out, "w");
+
+    jsontool::Object json;
+    std::vector<jsontool::Object> allPoints;
+    std::vector<jsontool::Object> allCameras;
+
+
     /* Print the ply header */
     fprintf(f, ply_header, num_good_pts + 2 * num_cameras);
 
     fprintf(fxml, "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
     fprintf(fxml, "<bundle>\n");
     fprintf(fxml, "<points>\n");
-
 
     /* Now triangulate all the correspondences */
     for (int i = 0; i < num_points; i++) {
@@ -1190,9 +1203,50 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
             iround(Vy(colors[i])),
             iround(Vz(colors[i])));
 
-        fprintf(fxml, "<point>\n\t<position> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </position>\n\t<color> <r>%d</r> <g>%d</g> <b>%d</b> </color>\n</point>\n",
+        fprintf(fxml, "<point>\n");
+        fprintf(fxml, "\t<position> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </position>\n\t<color> <r>%d</r> <g>%d</g> <b>%d</b> </color>\n",
             Vx(points[i]), Vy(points[i]), Vz(points[i]),
             iround(Vx(colors[i])), iround(Vy(colors[i])), iround(Vz(colors[i])));
+
+        jsontool::Object curPoint;
+        std::vector<jsontool::Object> visArray;
+
+        /* Pos on image */
+        int num_visible = (int) pt_views[i].size();
+
+        fprintf(fxml, "\t<visible>\n");
+        for (int j = 0; j < num_visible; j++) {
+            int img = added_order[pt_views[i][j].first];
+            int key = pt_views[i][j].second;
+
+            double x = m_image_data[img].m_keys[key].m_x;
+            double y = m_image_data[img].m_keys[key].m_y;
+
+            //fprintf(fxml, " %d %d %0.4f %0.4f", img, key, x, y);
+            fprintf(fxml, "\t\t<imgID> %d </imgID>\n", img);
+            fprintf(fxml, "\t\t<key> %d </key>\n", key);
+            fprintf(fxml, "\t\t<coord> <x> %0.4f </x> <y> %0.4f </y> </coord>\n", x, y);
+
+            // JSON
+            jsontool::Object curVis;
+            curVis["img"] = img;
+            curVis["key"] = key;
+            curVis["x"] = x;
+            curVis["y"] = y;
+            visArray.push_back( curVis );
+        }
+        fprintf(fxml, "\t</visible>\n");
+        fprintf(fxml, "</point>\n");
+
+        // JSON
+        curPoint["x"] = Vx(points[i]);
+        curPoint["y"] = Vy(points[i]);
+        curPoint["z"] = Vz(points[i]);
+        curPoint["r"] = iround(Vx(colors[i]));
+        curPoint["g"] = iround(Vy(colors[i]));
+        curPoint["b"] = iround(Vz(colors[i]));
+        curPoint["visible"] = visArray;
+        allPoints.push_back( curPoint );
     }
 
     fprintf(fxml, "</points>\n");
@@ -1232,17 +1286,29 @@ void BaseApp::DumpPointsToPly(char *output_directory, char *filename,
 
         fprintf(fxml, "<p2> <x>%0.6e</x> <y>%0.6e</y> <z>%0.6e</z> </p2>\n", p[0], p[1], p[2]);
 
-        fprintf(fxml, "\t<img>%s</img>\n", m_image_data[i].m_name);
+        fprintf(fxml, "\t<filename>%s</filename>\n", m_image_data[i].m_name);
         fprintf(fxml, "</camera>\n");
 
+        //JSON
+        jsontool::Object curCamera;
+        jsontool::Object p1, p2;
+        p1["x"] = c[0];  p1["y"] = c[1];  p1["z"] = c[2];
+        p2["x"] = p[0];  p2["y"] = p[1];  p2["z"] = p[2];
+        curCamera["c"] = p1;
+        curCamera["p"] = p2;
+        curCamera["filename"] = m_image_data[i].m_name;
+        allCameras.push_back( curCamera );
     }
 
     fprintf(fxml, "</cameras>\n");
-
-
-
     fprintf(fxml, "</bundle>\n");
     fclose(fxml);
+
+    // JSON
+    json["points"] = allPoints;
+    json["cameras"] = allCameras;
+    fprintf(fjson, "%s", stringify(json).c_str());
+    fclose(fjson);
 
     fclose(f);
 }
