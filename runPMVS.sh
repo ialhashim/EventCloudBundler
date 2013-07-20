@@ -17,6 +17,7 @@ echo "~ Prepare PMVS ~"
 sh pmvs/prep_pmvs.sh
 echo "~ DonePreparePMV ~"
 
+# Run Extras
 echo "~ Run CMVS ~"
 ../../CMVS-PMVS/bin/cmvs pmvs/
 echo "~ Done CMVS ~"
@@ -24,9 +25,6 @@ echo "~ Done CMVS ~"
 echo "~ Run genOption ~"
 ../../CMVS-PMVS/bin/genOption pmvs/
 echo "~ done genopt ~"
-
-echo "I'm at"
-pwd
 
 echo "~ [Running PMVS, please wait..] ~"
 #../../CMVS-PMVS/bin/pmvs2 pmvs/ option-0000
