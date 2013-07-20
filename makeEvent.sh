@@ -10,5 +10,6 @@ fi
 ./getEventMedia.sh $1 | tee output/$1_log_download.txt
 ./preprocessMedia.sh $1 $2 | tee output/$1_log_preprocess.txt
 ./runBundler.sh $1 | tee output/$1_log_bundler.txt
+./runPMVS.sh $1 | tee output/$1_log_PMVS.txt
 ./uploadToCloud.sh $1 | tee output/$1_upload_results.txt
 

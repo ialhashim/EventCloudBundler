@@ -5,11 +5,11 @@ files=$(find data/$1/full/*.jpg)
 r=${2:-500}
 
 # Output folder
-mkdir -p output/$1/ready
+mkdir -p output/$1
 
 for file in $files; do
 	filename=${file##*/}
-	cmmand="convert $file -resize "${r}x${r}^" output/$1/ready/$filename"
+	cmmand="convert $file -resize "${r}x${r}^" output/$1/$filename"
 	echo $cmmand
 	$cmmand
 done
